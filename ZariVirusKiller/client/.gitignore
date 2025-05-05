@@ -1,0 +1,9 @@
+# .NET Build
+bin/
+obj/
+*.suo
+*.user
+
+# SQLite
+*.db
+*.sqlite

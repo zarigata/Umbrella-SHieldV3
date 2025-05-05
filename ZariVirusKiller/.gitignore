@@ -1,0 +1,24 @@
+# Python
+venv/
+__pycache__/
+*.pyc
+
+# .NET
+bin/
+obj/
+*.suo
+*.user
+
+# SQLite
+*.db
+*.sqlite
+
+# Node
+node_modules/
+
+# VS Code
+.vscode/
+
+# OS files
+Thumbs.db
+.DS_Store
