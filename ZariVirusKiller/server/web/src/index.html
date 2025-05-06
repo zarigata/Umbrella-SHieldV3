@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SecureGuard Admin Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.js"></script>
+</head>
+<body class="bg-gray-100 font-sans">
+    <div class="flex h-screen">
+        <!-- Sidebar -->
+        <div class="w-64 bg-white shadow-md">
+            <div class="p-4 bg-green-100">
+                <h2 class="text-2xl font-bold text-gray-800">SecureGuard</h2>
+                <p class="text-sm text-gray-600">Admin Dashboard</p>
+            </div>
+            <nav class="mt-4">
+                <a href="#" class="block py-2 px-4 text-gray-700 bg-green-50 hover:bg-green-100 border-l-4 border-green-500">
+                    <span class="inline-block mr-2">📊</span> Dashboard
+                </a>
+                <a href="#" class="block py-2 px-4 text-gray-700 hover:bg-green-50 hover:border-l-4 hover:border-green-500">
+                    <span class="inline-block mr-2">🔑</span> Gerenciar Licenças
+                </a>
+                <a href="#" class="block py-2 px-4 text-gray-700 hover:bg-green-50 hover:border-l-4 hover:border-green-500">
+                    <span class="inline-block mr-2">🦠</span> Definições de Vírus
+                </a>
+                <a href="#" class="block py-2 px-4 text-gray-700 hover:bg-green-50 hover:border-l-4 hover:border-green-500">
+                    <span class="inline-block mr-2">⚙️</span> Configurações
+                </a>
+            </nav>
+        </div>
+
+        <!-- Main Content -->
+        <div class="flex-1 overflow-auto">
+            <header class="bg-white shadow-sm">
+                <div class="p-4 flex justify-between items-center">
+                    <h1 class="text-xl font-semibold text-gray-800">Dashboard</h1>
+                    <div class="flex items-center space-x-4">
+                        <button class="px-4 py-2 bg-pink-100 text-pink-800 rounded-md hover:bg-pink-200">
+                            <span class="inline-block mr-1">🔔</span> Notificações
+                        </button>
+                        <div class="relative">
+                            <img src="https://via.placeholder.com/40" alt="Admin" class="w-10 h-10 rounded-full">
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <main class="p-6">
+                <!-- Stats Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+                    <div class="bg-white rounded-md shadow-sm p-4">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm text-gray-500">Licenças Ativas</p>
+                                <h3 class="text-2xl font-bold text-gray-800">128</h3>
+                            </div>
+                            <div class="p-3 bg-green-100 rounded-full">
+                                <span class="text-2xl">🔑</span>
+                            </div>
+                        </div>
+                        <p class="text-xs text-green-500 mt-2">↑ 12% desde o mês passado</p>
+                    </div>
+
+                    <div class="bg-white rounded-md shadow-sm p-4">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm text-gray-500">Ameaças Detectadas</p>
+                                <h3 class="text-2xl font-bold text-gray-800">1,024</h3>
+                            </div>
+                            <div class="p-3 bg-red-100 rounded-full">
+                                <span class="text-2xl">🦠</span>
+                            </div>
+                        </div>
+                        <p class="text-xs text-red-500 mt-2">↑ 8% desde o mês passado</p>
+                    </div>
+
+                    <div class="bg-white rounded-md shadow-sm p-4">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm text-gray-500">Clientes Ativos</p>
+                                <h3 class="text-2xl font-bold text-gray-800">98</h3>
+                            </div>
+                            <div class="p-3 bg-blue-100 rounded-full">
+                                <span class="text-2xl">💻</span>
+                            </div>
+                        </div>
+                        <p class="text-xs text-blue-500 mt-2">↑ 5% desde o mês passado</p>
+                    </div>
+
+                    <div class="bg-white rounded-md shadow-sm p-4">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm text-gray-500">Versão de Definições</p>
+                                <h3 class="text-2xl font-bold text-gray-800">1.2.8</h3>
+                            </div>
+                            <div class="p-3 bg-yellow-100 rounded-full">
+                                <span class="text-2xl">📦</span>
+                            </div>
+                        </div>
+                        <p class="text-xs text-yellow-500 mt-2">Atualizado há 2 dias</p>
+                    </div>
+                </div>
+
+                <!-- Charts -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                    <div class="bg-white rounded-md shadow-sm p-4">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4">Detecções por Tipo</h3>
+                        <div class="h-64">
+                            <canvas id="detectionsChart"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-md shadow-sm p-4">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4">Ativações por Mês</h3>
+                        <div class="h-64">
+                            <canvas id="activationsChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Licenses -->
+                <div class="bg-white rounded-md shadow-sm p-4 mb-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-lg font-semibold text-gray-800">Licenças Recentes</h3>
+                        <button class="px-3 py-1 bg-green-100 text-green-800 rounded-md hover:bg-green-200 text-sm">
+                            Gerar Novas Licenças
+                        </button>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead>
+                                <tr>
+                                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Chave</th>
+                                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Data de Criação</th>
+                                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Expira em</th>
+                                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                    <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white divide-y divide-gray-200">
+                                <tr>
+                                    <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-900">ZARI-1234-5678-9ABC</td>
+                                    <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-500">10/05/2023</td>
+                                    <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-500">10/05/2024</td>
+                                    <td class="px-4 py-2 whitespace-nowrap">
+                                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                                            Ativo
+                                        </span>
+                                    </td>
+                                    <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-500">
+                                        <button class="text-blue-600 hover:text-blue-900">Editar</button>
+                                        <button class="text-red-600 hover:text-red-900 ml-2">Revogar</button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-900">ZARI-2345-6789-ABCD</td>
+                                    <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-500">15/05/2023</td>
+                                    <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-500">15/05/2024</td>
+                                    <td class="px-4 py-2 whitespace-nowrap">
+                                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                                            Ativo
+                                        </span>
+                                    </td>
+                                    <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-500">
+                                        <button class="text-blue-600 hover:text-blue-900">Editar</button>
+                                        <button class="text-red-600 hover:text-red-900 ml-2">Revogar</button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-900">ZARI-3456-789A-BCDE</td>
+                                    <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-500">20/05/2023</td>
+                                    <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-500">20/05/2024</td>
+                                    <td class="px-4 py-2 whitespace-nowrap">
+                                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
+                                            Pendente
+                                        </span>
+                                    </td>
+                                    <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-500">
+                                        <button class="text-blue-600 hover:text-blue-900">Editar</button>
+                                        <button class="text-red-600 hover:text-red-900 ml-2">Revogar</button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script>
+        // Initialize charts
+        document.addEventListener('DOMContentLoaded', function() {
+            // Detections by type chart
+            const detectionsCtx = document.getElementById('detectionsChart').getContext('2d');
+            const detectionsChart = new Chart(detectionsCtx, {
+                type: 'pie',
+                data: {
+                    labels: ['Trojans', 'Ransomware', 'Adware', 'Spyware', 'Outros'],
+                    datasets: [{
+                        data: [42, 23, 15, 12, 8],
+                        backgroundColor: [
+                            '#FED7D7', // red-100
+                            '#FED7AA', // orange-100
+                            '#FEF3C7', // yellow-100
+                            '#DCFCE7', // green-100
+                            '#DBEAFE'  // blue-100
+                        ],
+                        borderColor: [
+                            '#F56565', // red-500
+                            '#ED8936', // orange-500
+                            '#ECC94B', // yellow-500
+                            '#48BB78', // green-500
+                            '#4299E1'  // blue-500
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'right',
+                        }
+                    }
+                }
+            });
+
+            // Activations by month chart
+            const activationsCtx = document.getElementById('activationsChart').getContext('2d');
+            const activationsChart = new Chart(activationsCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun'],
+                    datasets: [{
+                        label: 'Novas Ativações',
+                        data: [12, 19, 15, 8, 22, 14],
+                        backgroundColor: '#A8D5BA', // pastel green
+                        borderColor: '#48BB78', // green-500
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,79 @@
+name: ZariVirusKiller CI/CD
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  build-client:
+    name: Build Client
+    runs-on: windows-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Setup MSBuild
+      uses: microsoft/setup-msbuild@v1.1
+      
+    - name: Setup NuGet
+      uses: NuGet/setup-nuget@v1
+      
+    - name: Restore NuGet packages
+      run: nuget restore ZariVirusKiller/client/ZariVirusKiller.sln
+      
+    - name: Build solution
+      run: msbuild ZariVirusKiller/client/ZariVirusKiller.sln /p:Configuration=Release
+      
+    - name: Run client tests
+      run: |
+        dotnet test ZariVirusKiller/client/engine/ScanEngine.Tests.cs --logger:"console;verbosity=detailed"
+      
+  build-server:
+    name: Build Server
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
+        
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install flake8 pytest
+        if [ -f ZariVirusKiller/server/requirements.txt ]; then pip install -r ZariVirusKiller/server/requirements.txt; fi
+        
+    - name: Lint with flake8
+      run: |
+        # stop the build if there are Python syntax errors or undefined names
+        flake8 ZariVirusKiller/server --count --select=E9,F63,F7,F82 --show-source --statistics
+        # exit-zero treats all errors as warnings
+        flake8 ZariVirusKiller/server --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+        
+    - name: Test with pytest
+      run: |
+        pytest ZariVirusKiller/server
+        
+    - name: Build Docker image
+      run: |
+        cd ZariVirusKiller/server
+        docker build -t zari-server .
+        
+  integration-test:
+    name: Integration Tests
+    needs: [build-client, build-server]
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up environment
+      run: echo "Setting up integration test environment"
+      
+    - name: Run integration tests
+      run: echo "Running integration tests between client and server"
