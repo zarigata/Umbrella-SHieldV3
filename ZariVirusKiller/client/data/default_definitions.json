@@ -1,0 +1,57 @@
+{
+  "version": "0.9.0",
+  "created_at": "2023-07-01T12:00:00Z",
+  "signatures": [
+    {
+      "id": "BETA-001",
+      "name": "Test Malware Signature",
+      "severity": "high",
+      "description": "This is a test signature for beta testing",
+      "logic": "all",
+      "patterns": [
+        {
+          "type": "hex",
+          "offset": "any",
+          "hex_pattern": "4D5A9000",
+          "match_type": "exact"
+        }
+      ]
+    },
+    {
+      "id": "BETA-002",
+      "name": "Test Ransomware Signature",
+      "severity": "critical",
+      "description": "Test signature for ransomware detection",
+      "logic": "all",
+      "patterns": [
+        {
+          "type": "ascii",
+          "offset": "any",
+          "ascii_pattern": "Your files have been encrypted",
+          "match_type": "contains"
+        }
+      ]
+    },
+    {
+      "id": "BETA-003",
+      "name": "Test Trojan Signature",
+      "severity": "medium",
+      "description": "Test signature for trojan detection",
+      "logic": "all",
+      "patterns": [
+        {
+          "type": "hex",
+          "offset": "0",
+          "hex_pattern": "504B0304",
+          "match_type": "exact"
+        },
+        {
+          "type": "ascii",
+          "offset": "any",
+          "ascii_pattern": "cmd.exe /c",
+          "match_type": "contains"
+        }
+      ]
+    }
+  ]
+}

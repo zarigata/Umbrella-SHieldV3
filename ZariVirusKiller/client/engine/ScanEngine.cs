@@ -5,19 +5,52 @@ using System.Threading.Tasks;
 using System.Security.Cryptography;
 using System.Text;
 using System.Net.Http;
+using System.Threading;
 using Newtonsoft.Json;
 
 namespace ZariVirusKiller.Engine
 {
+    public class ScanProgressEventArgs : EventArgs
+    {
+        public string CurrentFile { get; set; }
+        public int ScannedFiles { get; set; }
+        public int TotalFiles { get; set; }
+        public int ThreatsFound { get; set; }
+    }
+
+    public class ScanCompletedEventArgs : EventArgs
+    {
+        public ScanResult Result { get; set; }
+    }
+
+    public class UpdateProgressEventArgs : EventArgs
+    {
+        public string Status { get; set; }
+        public int ProgressPercentage { get; set; }
+    }
+
+    public class UpdateCompletedEventArgs : EventArgs
+    {
+        public bool Success { get; set; }
+        public string Version { get; set; }
+        public int SignatureCount { get; set; }
+    }
+    
     public class ScanEngine
     {
         private readonly HttpClient _httpClient;
         private readonly string _serverUrl;
         private Dictionary<string, string> _virusDefinitions;
         private bool _isInitialized;
+        private CancellationTokenSource _scanCancellationTokenSource;
+        private readonly PatternScanner _patternScanner;
+        private readonly HeuristicAnalyzer _heuristicAnalyzer;
+        private readonly QuarantineManager _quarantineManager;
         
         public event EventHandler<ScanProgressEventArgs> ScanProgress;
         public event EventHandler<ScanCompletedEventArgs> ScanCompleted;
+        public event EventHandler<UpdateProgressEventArgs> UpdateProgress;
+        public event EventHandler<UpdateCompletedEventArgs> UpdateCompleted;
         
         public ScanEngine(string serverUrl)
         {
@@ -25,6 +58,27 @@ namespace ZariVirusKiller.Engine
             _httpClient = new HttpClient();
             _virusDefinitions = new Dictionary<string, string>();
             _isInitialized = false;
+            _scanCancellationTokenSource = new CancellationTokenSource();
+            
+            // Initialize components
+            string appData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+            string definitionsPath = Path.Combine(appData, "ZariVirusKiller", "Definitions");
+            string quarantinePath = Path.Combine(appData, "ZariVirusKiller", "Quarantine");
+            
+            // Ensure directories exist
+            Directory.CreateDirectory(definitionsPath);
+            Directory.CreateDirectory(quarantinePath);
+            
+            _patternScanner = new PatternScanner();
+            _heuristicAnalyzer = new HeuristicAnalyzer();
+            _quarantineManager = new QuarantineManager(quarantinePath);
+            
+            // Load pattern signatures if available
+            string signatureFile = Path.Combine(definitionsPath, "patterns.json");
+            if (File.Exists(signatureFile))
+            {
+                _patternScanner.LoadSignatures(signatureFile);
+            }
         }
         
         /// <summary>
@@ -80,7 +134,58 @@ namespace ZariVirusKiller.Engine
         }
         
         /// <summary>
-        /// Scans a file for viruses
+        /// Cancels the current scan operation
+        /// </summary>
+        public void CancelScan()
+        {
+            if (_scanCancellationTokenSource != null && !_scanCancellationTokenSource.IsCancellationRequested)
+            {
+                _scanCancellationTokenSource.Cancel();
+                _scanCancellationTokenSource = new CancellationTokenSource();
+            }
+        }
+        
+        /// <summary>
+        /// Quarantines an infected file
+        /// </summary>
+        public async Task<bool> QuarantineFileAsync(string filePath, string threatName, string detectionMethod)
+        {
+            var threatInfo = new ThreatInfo
+            {
+                ThreatName = threatName,
+                ThreatType = "Malware",
+                DetectionMethod = detectionMethod
+            };
+            
+            return await _quarantineManager.QuarantineFileAsync(filePath, threatInfo);
+        }
+        
+        /// <summary>
+        /// Restores a file from quarantine
+        /// </summary>
+        public async Task<bool> RestoreFromQuarantineAsync(string quarantineId, string restorePath = null)
+        {
+            return await _quarantineManager.RestoreFileAsync(quarantineId, restorePath);
+        }
+        
+        /// <summary>
+        /// Gets a list of all quarantined files
+        /// </summary>
+        public List<QuarantineEntry> GetQuarantinedFiles()
+        {
+            return _quarantineManager.GetQuarantinedFiles();
+        }
+        
+        /// <summary>
+        /// Deletes a file from quarantine
+        /// </summary>
+        public bool DeleteFromQuarantine(string quarantineId)
+        {
+            return _quarantineManager.DeleteQuarantinedFile(quarantineId);
+        }
+        
+        /// <summary>
+        /// Scans a file for viruses using multiple detection methods
         /// </summary>
         /// <param name="filePath">The path to the file to scan</param>
         /// <returns>The scan result</returns>
@@ -103,7 +208,14 @@ namespace ZariVirusKiller.Engine
                     };
                 }
                 
-                // Calculate file hash
+                var result = new ScanResult
+                {
+                    FilePath = filePath,
+                    IsInfected = false,
+                    DetectionMethod = "None"
+                };
+                
+                // Step 1: Hash-based detection
                 string hash = await CalculateFileHashAsync(filePath);
                 
                 // Check if the hash matches any known virus
@@ -111,20 +223,46 @@ namespace ZariVirusKiller.Engine
                 {
                     if (definition.Value == hash)
                     {
-                        return new ScanResult
-                        {
-                            FilePath = filePath,
-                            IsInfected = true,
-                            ThreatName = definition.Key
-                        };
+                        result.IsInfected = true;
+                        result.ThreatName = definition.Key;
+                        result.DetectionMethod = "Hash-based";
+                        return result;
                     }
                 }
                 
-                return new ScanResult
+                // Step 2: Pattern-based detection
+                var patternResult = await _patternScanner.ScanFileAsync(filePath);
+                if (patternResult.IsInfected)
                 {
-                    FilePath = filePath,
-                    IsInfected = false
-                };
+                    result.IsInfected = true;
+                    result.ThreatName = patternResult.MatchedSignatures[0].SignatureName;
+                    result.DetectionMethod = "Pattern-based";
+                    result.MatchedPatterns = patternResult.MatchedSignatures[0].MatchedPatterns;
+                    result.SignatureId = patternResult.MatchedSignatures[0].SignatureId;
+                    return result;
+                }
+                
+                // Step 3: Heuristic analysis
+                var heuristicResult = await _heuristicAnalyzer.AnalyzeFileAsync(filePath);
+                if (heuristicResult.RiskLevel == RiskLevel.High)
+                {
+                    result.IsInfected = true;
+                    result.ThreatName = $"Suspicious.{Path.GetExtension(filePath).TrimStart('.')}";
+                    result.DetectionMethod = "Heuristic";
+                    result.RiskLevel = heuristicResult.RiskLevel;
+                    result.RiskScore = heuristicResult.RiskScore;
+                    result.HeuristicFindings = heuristicResult.Findings;
+                    return result;
+                }
+                else if (heuristicResult.RiskLevel == RiskLevel.Medium)
+                {
+                    // For medium risk, we don't mark as infected but include the findings
+                    result.RiskLevel = heuristicResult.RiskLevel;
+                    result.RiskScore = heuristicResult.RiskScore;
+                    result.HeuristicFindings = heuristicResult.Findings;
+                }
+                
+                return result;
             }
             catch (Exception ex)
             {
@@ -286,6 +424,18 @@ namespace ZariVirusKiller.Engine
         public bool IsInfected { get; set; }
         public string ThreatName { get; set; }
         public string ErrorMessage { get; set; }
+        public string DetectionMethod { get; set; }
+        public string SignatureId { get; set; }
+        public List<string> MatchedPatterns { get; set; }
+        public RiskLevel RiskLevel { get; set; }
+        public int RiskScore { get; set; }
+        public List<HeuristicFinding> HeuristicFindings { get; set; }
+        
+        public ScanResult()
+        {
+            MatchedPatterns = new List<string>();
+            HeuristicFindings = new List<HeuristicFinding>();
+        }
     }
     
     public class ScanProgressEventArgs : EventArgs

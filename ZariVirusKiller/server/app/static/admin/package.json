@@ -1,0 +1,29 @@
+{
+  "name": "zarivirus-admin-dashboard",
+  "version": "1.0.0",
+  "description": "Admin dashboard for ZariVirusKiller",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc && tailwindcss -i ./src/styles/input.css -o ./dist/styles.css",
+    "dev": "concurrently \"tsc --watch\" \"tailwindcss -i ./src/styles/input.css -o ./dist/styles.css --watch\"",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "antivirus",
+    "admin",
+    "dashboard"
+  ],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "autoprefixer": "^10.4.14",
+    "concurrently": "^8.0.1",
+    "postcss": "^8.4.23",
+    "tailwindcss": "^3.3.2",
+    "typescript": "^5.0.4"
+  },
+  "dependencies": {
+    "axios": "^1.4.0",
+    "chart.js": "^4.3.0"
+  }
+}

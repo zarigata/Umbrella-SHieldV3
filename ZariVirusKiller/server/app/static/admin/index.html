@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ZariVirusKiller Admin Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-100">
+    <div class="min-h-screen flex flex-col">
+        <!-- Header -->
+        <header class="bg-blue-600 text-white shadow-lg">
+            <div class="container mx-auto px-4 py-4 flex justify-between items-center">
+                <h1 class="text-2xl font-bold">ZariVirusKiller Admin</h1>
+                <div id="user-info" class="hidden">
+                    <span id="username" class="mr-4"></span>
+                    <button id="logout-btn" class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded">
+                        Logout
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="flex-grow container mx-auto px-4 py-8">
+            <!-- Login Form -->
+            <div id="login-form" class="max-w-md mx-auto bg-white p-8 rounded-lg shadow-md">
+                <h2 class="text-2xl font-bold mb-6 text-center">Login</h2>
+                <div class="mb-4">
+                    <label class="block text-gray-700 text-sm font-bold mb-2" for="username-input">
+                        Username
+                    </label>
+                    <input id="username-input" type="text" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                </div>
+                <div class="mb-6">
+                    <label class="block text-gray-700 text-sm font-bold mb-2" for="password-input">
+                        Password
+                    </label>
+                    <input id="password-input" type="password" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                </div>
+                <div class="flex items-center justify-center">
+                    <button id="login-btn" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline w-full">
+                        Sign In
+                    </button>
+                </div>
+                <div id="login-error" class="mt-4 text-red-500 text-center hidden"></div>
+            </div>
+
+            <!-- Dashboard Content -->
+            <div id="dashboard-content" class="hidden">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                    <!-- Statistics Cards -->
+                    <div class="bg-white p-6 rounded-lg shadow-md">
+                        <h3 class="text-lg font-semibold mb-2">Licenses</h3>
+                        <div class="flex justify-between">
+                            <span>Total:</span>
+                            <span id="total-licenses">0</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span>Active:</span>
+                            <span id="active-licenses">0</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span>Used:</span>
+                            <span id="used-licenses">0</span>
+                        </div>
+                    </div>
+                    <div class="bg-white p-6 rounded-lg shadow-md">
+                        <h3 class="text-lg font-semibold mb-2">Signatures</h3>
+                        <div class="flex justify-between">
+                            <span>Total:</span>
+                            <span id="total-signatures">0</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span>Hash-based:</span>
+                            <span id="hash-signatures">0</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span>Pattern-based:</span>
+                            <span id="pattern-signatures">0</span>
+                        </div>
+                    </div>
+                    <div class="bg-white p-6 rounded-lg shadow-md">
+                        <h3 class="text-lg font-semibold mb-2">Definitions</h3>
+                        <div class="flex justify-between">
+                            <span>Latest Update:</span>
+                            <span id="latest-update">N/A</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span>Version:</span>
+                            <span id="definition-version">N/A</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span>Signature Count:</span>
+                            <span id="definition-count">0</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tabs -->
+                <div class="mb-4 border-b border-gray-200">
+                    <ul class="flex flex-wrap -mb-px" role="tablist">
+                        <li class="mr-2">
+                            <button class="tab-btn inline-block p-4 border-b-2 border-transparent rounded-t-lg hover:text-gray-600 hover:border-gray-300 active" data-target="signatures-tab">Signatures</button>
+                        </li>
+                        <li class="mr-2">
+                            <button class="tab-btn inline-block p-4 border-b-2 border-transparent rounded-t-lg hover:text-gray-600 hover:border-gray-300" data-target="licenses-tab">Licenses</button>
+                        </li>
+                        <li class="mr-2">
+                            <button class="tab-btn inline-block p-4 border-b-2 border-transparent rounded-t-lg hover:text-gray-600 hover:border-gray-300" data-target="users-tab">Users</button>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Tab Content -->
+                <div class="tab-content">
+                    <!-- Signatures Tab -->
+                    <div id="signatures-tab" class="bg-white p-6 rounded-lg shadow-md">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-lg font-semibold">Virus Signatures</h3>
+                            <button id="add-signature-btn" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">
+                                Add Signature
+                            </button>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full bg-white">
+                                <thead>
+                                    <tr>
+                                        <th class="py-2 px-4 border-b border-gray-200 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
+                                        <th class="py-2 px-4 border-b border-gray-200 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                                        <th class="py-2 px-4 border-b border-gray-200 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
+                                        <th class="py-2 px-4 border-b border-gray-200 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Severity</th>
+                                        <th class="py-2 px-4 border-b border-gray-200 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="signatures-table-body">
+                                    <!-- Signatures will be loaded here -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Licenses Tab -->
+                    <div id="licenses-tab" class="bg-white p-6 rounded-lg shadow-md hidden">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-lg font-semibold">License Keys</h3>
+                            <button id="add-license-btn" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">
+                                Add License
+                            </button>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full bg-white">
+                                <thead>
+                                    <tr>
+                                        <th class="py-2 px-4 border-b border-gray-200 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Key</th>
+                                        <th class="py-2 px-4 border-b border-gray-200 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created</th>
+                                        <th class="py-2 px-4 border-b border-gray-200 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Expires</th>
+                                        <th class="py-2 px-4 border-b border-gray-200 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Device ID</th>
+                                        <th class="py-2 px-4 border-b border-gray-200 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="licenses-table-body">
+                                    <!-- Licenses will be loaded here -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Users Tab -->
+                    <div id="users-tab" class="bg-white p-6 rounded-lg shadow-md hidden">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-lg font-semibold">Admin Users</h3>
+                            <button id="add-user-btn" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">
+                                Add User
+                            </button>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full bg-white">
+                                <thead>
+                                    <tr>
+                                        <th class="py-2 px-4 border-b border-gray-200 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
+                                        <th class="py-2 px-4 border-b border-gray-200 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Username</th>
+                                        <th class="py-2 px-4 border-b border-gray-200 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Admin</th>
+                                        <th class="py-2 px-4 border-b border-gray-200 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="users-table-body">
+                                    <!-- Users will be loaded here -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Footer -->
+        <footer class="bg-gray-800 text-white py-4">
+            <div class="container mx-auto px-4 text-center">
+                <p>&copy; 2023 ZariVirusKiller. All rights reserved.</p>
+            </div>
+        </footer>
+    </div>
+
+    <!-- JavaScript -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // DOM Elements
+            const loginForm = document.getElementById('login-form');
+            const dashboardContent = document.getElementById('dashboard-content');
+            const userInfo = document.getElementById('user-info');
+            const usernameDisplay = document.getElementById('username');
+            const loginBtn = document.getElementById('login-btn');
+            const logoutBtn = document.getElementById('logout-btn');
+            const loginError = document.getElementById('login-error');
+            const tabButtons = document.querySelectorAll('.tab-btn');
+            const tabContents = document.querySelectorAll('.tab-content > div');
+            
+            // Check if user is already logged in
+            const token = localStorage.getItem('token');
+            if (token) {
+                showDashboard();
+                fetchStatistics();
+                fetchSignatures();
+            }
+            
+            // Login functionality
+            loginBtn.addEventListener('click', function() {
+                const username = document.getElementById('username-input').value;
+                const password = document.getElementById('password-input').value;
+                
+                if (!username || !password) {
+                    showLoginError('Username and password are required');
+                    return;
+                }
+                
+                fetch('/auth/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ username, password })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        showLoginError(data.error);
+                    } else {
+                        localStorage.setItem('token', data.access_token);
+                        localStorage.setItem('username', data.user.username);
+                        showDashboard();
+                        fetchStatistics();
+                        fetchSignatures();
+                    }
+                })
+                .catch(error => {
+                    showLoginError('An error occurred. Please try again.');
+                    console.error('Login error:', error);
+                });
+            });
+            
+            // Logout functionality
+            logoutBtn.addEventListener('click', function() {
+                localStorage.removeItem('token');
+                localStorage.removeItem('username');
+                showLoginForm();
+            });
+            
+            // Tab switching
+            tabButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const target = this.dataset.target;
+                    
+                    // Update active tab button
+                    tabButtons.forEach(btn => btn.classList.remove('active', 'border-blue-500', 'text-blue-600'));
+                    this.classList.add('active', 'border-blue-500', 'text-blue-600');
+                    
+                    // Show target tab content
+                    tabContents.forEach(content => {
+                        content.classList.add('hidden');
+                    });
+                    document.getElementById(target).classList.remove('hidden');
+                    
+                    // Load data for the selected tab
+                    if (target === 'licenses-tab') {
+                        fetchLicenses();
+                    } else if (target === 'users-tab') {
+                        fetchUsers();
+                    }
+                });
+            });
+            
+            // Helper functions
+            function showDashboard() {
+                loginForm.classList.add('hidden');
+                dashboardContent.classList.remove('hidden');
+                userInfo.classList.remove('hidden');
+                usernameDisplay.textContent = localStorage.getItem('username');
+            }
+            
+            function showLoginForm() {
+                dashboardContent.classList.add('hidden');
+                userInfo.classList.add('hidden');
+                loginForm.classList.remove('hidden');
+                document.getElementById('username-input').value = '';
+                document.getElementById('password-input').value = '';
+                loginError.classList.add('hidden');
+            }
+            
+            function showLoginError(message) {
+                loginError.textContent = message;
+                loginError.classList.remove('hidden');
+            }
+            
+            function fetchStatistics() {
+                fetch('/api/statistics', {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        console.error('Error fetching statistics:', data.error);
+                        return;
+                    }
+                    
+                    // Update statistics display
+                    document.getElementById('total-licenses').textContent = data.licenses.total;
+                    document.getElementById('active-licenses').textContent = data.licenses.active;
+                    document.getElementById('used-licenses').textContent = data.licenses.used;
+                    
+                    document.getElementById('total-signatures').textContent = data.signatures.total;
+                    document.getElementById('hash-signatures').textContent = data.signatures.hash_based;
+                    document.getElementById('pattern-signatures').textContent = data.signatures.pattern_based;
+                    
+                    document.getElementById('latest-update').textContent = data.definitions.latest_update ? new Date(data.definitions.latest_update).toLocaleDateString() : 'N/A';
+                    document.getElementById('definition-version').textContent = data.definitions.version || 'N/A';
+                    document.getElementById('definition-count').textContent = data.definitions.signature_count;
+                })
+                .catch(error => {
+                    console.error('Error fetching statistics:', error);
+                });
+            }
+            
+            function fetchSignatures() {
+                fetch('/api/signatures', {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        console.error('Error fetching signatures:', data.error);
+                        return;
+                    }
+                    
+                    const tableBody = document.getElementById('signatures-table-body');
+                    tableBody.innerHTML = '';
+                    
+                    data.forEach(signature => {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td class="py-2 px-4 border-b border-gray-200">${signature.id}</td>
+                            <td class="py-2 px-4 border-b border-gray-200">${signature.name}</td>
+                            <td class="py-2 px-4 border-b border-gray-200">${signature.type}</td>
+                            <td class="py-2 px-4 border-b border-gray-200">
+                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                                    ${signature.severity === 'high' ? 'bg-red-100 text-red-800' : 
+                                      signature.severity === 'medium' ? 'bg-yellow-100 text-yellow-800' : 
+                                      'bg-green-100 text-green-800'}">                                    
+                                    ${signature.severity}
+                                </span>
+                            </td>
+                            <td class="py-2 px-4 border-b border-gray-200">${new Date(signature.created_at).toLocaleDateString()}</td>
+                        `;
+                        tableBody.appendChild(row);
+                    });
+                })
+                .catch(error => {
+                    console.error('Error fetching signatures:', error);
+                });
+            }
+            
+            function fetchLicenses() {
+                // This would be implemented in a real application
+                console.log('Fetching licenses...');
+            }
+            
+            function fetchUsers() {
+                fetch('/auth/users', {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        console.error('Error fetching users:', data.error);
+                        return;
+                    }
+                    
+                    const tableBody = document.getElementById('users-table-body');
+                    tableBody.innerHTML = '';
+                    
+                    data.forEach(user => {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td class="py-2 px-4 border-b border-gray-200">${user.id}</td>
+                            <td class="py-2 px-4 border-b border-gray-200">${user.username}</td>
+                            <td class="py-2 px-4 border-b border-gray-200">
+                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                                    ${user.is_admin ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}">
+                                    ${user.is_admin ? 'Yes' : 'No'}
+                                </span>
+                            </td>
+                            <td class="py-2 px-4 border-b border-gray-200">${new Date(user.created_at).toLocaleDateString()}</td>
+                        `;
+                        tableBody.appendChild(row);
+                    });
+                })
+                .catch(error => {
+                    console.error('Error fetching users:', error);
+                });
+            }
+        });
+    </script>
+</body>
+</html>
